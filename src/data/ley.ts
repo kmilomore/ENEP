@@ -36,12 +36,14 @@ export interface Arista {
   posEtiqueta?: number
 }
 
-export const CATEGORIAS: Record<Categoria, { nombre: string; color: string }> = {
-  origen: { nombre: 'La ley', color: 'var(--coral-500)' },
-  nacional: { nombre: 'Nivel nacional', color: 'var(--navy-500)' },
-  territorial: { nombre: 'Nivel territorial', color: 'var(--royal-500)' },
-  instrumento: { nombre: 'Instrumentos de gestión', color: 'var(--neutral-500)' },
-  escuela: { nombre: 'La escuela y su comunidad', color: '#1F8A5B' },
+export type Plantilla = 'portada' | 'panel' | 'pasos' | 'tarjetas' | 'cierre'
+
+export const CATEGORIAS: Record<Categoria, { nombre: string; color: string; plantilla: Plantilla }> = {
+  origen: { nombre: 'La ley', color: 'var(--coral-500)', plantilla: 'portada' },
+  nacional: { nombre: 'Nivel nacional', color: 'var(--navy-500)', plantilla: 'panel' },
+  territorial: { nombre: 'Nivel territorial', color: 'var(--royal-500)', plantilla: 'tarjetas' },
+  instrumento: { nombre: 'Instrumentos de gestión', color: 'var(--neutral-500)', plantilla: 'pasos' },
+  escuela: { nombre: 'La escuela y su comunidad', color: '#1F8A5B', plantilla: 'cierre' },
 }
 
 export const NODOS: NodoLey[] = [

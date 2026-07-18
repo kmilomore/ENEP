@@ -1,8 +1,7 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import logo from '@slep-colchagua/design-system/assets/logo-slep-colchagua.webp'
 import GraphView from './components/GraphView'
-import DetailPanel from './components/DetailPanel'
-import TourBar from './components/TourBar'
+import SlideModal from './components/SlideModal'
 import { CATEGORIAS, NODOS, RECORRIDO } from './data/ley'
 import './App.css'
 
@@ -13,7 +12,6 @@ function nodoInicial(): string | null {
 
 export default function App() {
   const [seleccionado, setSeleccionado] = useState<string | null>(nodoInicial)
-  const [paso, setPaso] = useState<number | null>(null)
 
   const nodoActivo = NODOS.find((n) => n.id === seleccionado) ?? null
 
@@ -22,47 +20,35 @@ export default function App() {
   }
 
   const iniciarRecorrido = () => {
-    setPaso(0)
     setSeleccionado(RECORRIDO[0])
     irAlMapa()
   }
 
-  const salirRecorrido = useCallback(() => {
-    setPaso(null)
-    setSeleccionado(null)
-  }, [])
-
-  const moverPaso = useCallback((delta: number) => {
-    setPaso((actual) => {
-      if (actual === null) return actual
-      const siguiente = Math.min(Math.max(actual + delta, 0), RECORRIDO.length - 1)
-      setSeleccionado(RECORRIDO[siguiente])
-      return siguiente
-    })
-  }, [])
-
   const seleccionarNodo = (id: string) => {
     setSeleccionado(id)
-    // Si hay recorrido activo, sincroniza el paso con el nodo elegido
-    const idx = RECORRIDO.indexOf(id)
-    setPaso((actual) => (actual === null ? null : idx))
   }
 
   useEffect(() => {
     const onTecla = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        if (paso !== null) salirRecorrido()
-        else setSeleccionado(null)
-      }
-      if (paso !== null && e.key === 'ArrowRight') moverPaso(1)
-      if (paso !== null && e.key === 'ArrowLeft') moverPaso(-1)
+      if (seleccionado === null) return
+      if (e.key === 'Escape') setSeleccionado(null)
+      const idx = RECORRIDO.indexOf(seleccionado)
+      if (e.key === 'ArrowRight' && idx < RECORRIDO.length - 1) setSeleccionado(RECORRIDO[idx + 1])
+      if (e.key === 'ArrowLeft' && idx > 0) setSeleccionado(RECORRIDO[idx - 1])
     }
     window.addEventListener('keydown', onTecla)
     return () => window.removeEventListener('keydown', onTecla)
-  }, [paso, moverPaso, salirRecorrido])
+  }, [seleccionado])
+
+  useEffect(() => {
+    document.body.style.overflow = nodoActivo ? 'hidden' : ''
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [nodoActivo])
 
   return (
-    <div className={`app${paso !== null ? ' app--tour' : ''}`}>
+    <div className="app">
       <a className="skip-link" href="#mapa">
         Saltar al contenido
       </a>
@@ -160,29 +146,13 @@ export default function App() {
           </div>
         </div>
 
-        <div className={`mapa-lienzo${nodoActivo ? ' mapa-lienzo--con-panel' : ''}`}>
+        <div className="mapa-lienzo">
           <GraphView seleccionado={seleccionado} onSeleccionar={seleccionarNodo} />
         </div>
       </main>
 
       {nodoActivo && (
-        <DetailPanel
-          nodo={nodoActivo}
-          onCerrar={() => {
-            setSeleccionado(null)
-            setPaso(null)
-          }}
-          onNavegar={seleccionarNodo}
-        />
-      )}
-
-      {paso !== null && (
-        <TourBar
-          paso={paso}
-          onAnterior={() => moverPaso(-1)}
-          onSiguiente={() => moverPaso(1)}
-          onSalir={salirRecorrido}
-        />
+        <SlideModal nodo={nodoActivo} onCerrar={() => setSeleccionado(null)} onNavegar={seleccionarNodo} />
       )}
 
       <footer className="pie">
